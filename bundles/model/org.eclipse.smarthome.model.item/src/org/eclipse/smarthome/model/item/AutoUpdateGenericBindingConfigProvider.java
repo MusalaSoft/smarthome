@@ -59,7 +59,7 @@ public class AutoUpdateGenericBindingConfigProvider implements AutoUpdateBinding
     }
 
     /**
-     * @{inheritDoc
+     * @{inheritDoc}
      */
     @Override
     public void validateItemType(String itemType, String bindingConfig) throws BindingConfigParseException {
@@ -81,7 +81,7 @@ public class AutoUpdateGenericBindingConfigProvider implements AutoUpdateBinding
 
         AutoUpdateBindingConfig config = new AutoUpdateBindingConfig();
         parseBindingConfig(bindingConfig, config);
-        addBindingConfig(itemType, itemName, config);
+        addBindingConfig(itemName, config);
     }
 
     protected void parseBindingConfig(String bindingConfig, AutoUpdateBindingConfig config)
@@ -124,19 +124,19 @@ public class AutoUpdateGenericBindingConfigProvider implements AutoUpdateBinding
     public void stopConfigurationUpdate(String context) {
     }
 
-    protected void addBindingConfig(String itemType, String itemName, AutoUpdateBindingConfig config) {
+    protected void addBindingConfig(String itemName, AutoUpdateBindingConfig config) {
         bindingConfigs.put(itemName, config);
     }
 
     /**
-     * @{inheritDoc
+     * @{inheritDoc}
      */
     public boolean providesBindingFor(String itemName) {
         return bindingConfigs.get(itemName) != null;
     }
 
     /**
-     * @{inheritDoc
+     * @{inheritDoc}
      */
     public boolean providesBinding() {
         return !bindingConfigs.isEmpty();
