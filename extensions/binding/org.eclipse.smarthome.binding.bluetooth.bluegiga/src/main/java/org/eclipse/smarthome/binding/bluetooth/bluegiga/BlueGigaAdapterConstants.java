@@ -11,12 +11,12 @@ import org.eclipse.smarthome.binding.bluetooth.BluetoothBindingConstants;
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
 
 /**
- * The {@link BlueGigaBindingConstants} class defines common constants, which are
+ * The {@link BlueGigaAdapterConstants} class defines common constants, which are
  * used across the whole binding.
  *
  * @author Chris Jackson - Initial contribution
  */
-public class BlueGigaBindingConstants {
+public class BlueGigaAdapterConstants {
 
     // List of all Thing Type UIDs
     public static final ThingTypeUID THING_TYPE_BLUEGIGA = new ThingTypeUID(BluetoothBindingConstants.BINDING_ID,

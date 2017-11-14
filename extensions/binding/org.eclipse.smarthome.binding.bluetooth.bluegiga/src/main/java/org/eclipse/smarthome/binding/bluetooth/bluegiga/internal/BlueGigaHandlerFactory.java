@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.smarthome.binding.bluetooth.BluetoothAdapter;
-import org.eclipse.smarthome.binding.bluetooth.bluegiga.BlueGigaBindingConstants;
+import org.eclipse.smarthome.binding.bluetooth.bluegiga.BlueGigaAdapterConstants;
 import org.eclipse.smarthome.binding.bluetooth.bluegiga.handler.BlueGigaBridgeHandler;
 import org.eclipse.smarthome.core.thing.Bridge;
 import org.eclipse.smarthome.core.thing.Thing;
@@ -39,7 +39,7 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 public class BlueGigaHandlerFactory extends BaseThingHandlerFactory {
 
     private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Collections
-            .singleton(BlueGigaBindingConstants.THING_TYPE_BLUEGIGA);
+            .singleton(BlueGigaAdapterConstants.THING_TYPE_BLUEGIGA);
 
     private final Map<ThingUID, ServiceRegistration<?>> serviceRegs = new HashMap<>();
 
@@ -52,7 +52,7 @@ public class BlueGigaHandlerFactory extends BaseThingHandlerFactory {
     protected ThingHandler createHandler(Thing thing) {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
 
-        if (thingTypeUID.equals(BlueGigaBindingConstants.THING_TYPE_BLUEGIGA)) {
+        if (thingTypeUID.equals(BlueGigaAdapterConstants.THING_TYPE_BLUEGIGA)) {
             BlueGigaBridgeHandler handler = new BlueGigaBridgeHandler((Bridge) thing);
             registerBluetoothAdapter(handler);
             return handler;

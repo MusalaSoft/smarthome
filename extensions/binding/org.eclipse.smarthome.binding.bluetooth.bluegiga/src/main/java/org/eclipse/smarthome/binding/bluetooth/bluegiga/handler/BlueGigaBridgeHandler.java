@@ -26,7 +26,7 @@ import org.eclipse.smarthome.binding.bluetooth.BluetoothBindingConstants;
 import org.eclipse.smarthome.binding.bluetooth.BluetoothDevice;
 import org.eclipse.smarthome.binding.bluetooth.BluetoothDeviceListener;
 import org.eclipse.smarthome.binding.bluetooth.BluetoothDiscoveryListener;
-import org.eclipse.smarthome.binding.bluetooth.bluegiga.BlueGigaBindingConstants;
+import org.eclipse.smarthome.binding.bluetooth.bluegiga.BlueGigaAdapterConstants;
 import org.eclipse.smarthome.core.thing.Bridge;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
@@ -157,7 +157,7 @@ public class BlueGigaBridgeHandler extends BaseBridgeHandler implements Bluetoot
     @Override
     public void initialize() {
         final BlueGigaBridgeHandler me = this;
-        final String portId = (String) getConfig().get(BlueGigaBindingConstants.CONFIGURATION_PORT);
+        final String portId = (String) getConfig().get(BlueGigaAdapterConstants.CONFIGURATION_PORT);
 
         if (portId == null) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Serial port must be configured!");
@@ -215,9 +215,9 @@ public class BlueGigaBridgeHandler extends BaseBridgeHandler implements Bluetoot
             properties.put(Thing.PROPERTY_FIRMWARE_VERSION,
                     String.format("%d.%d", infoResponse.getMajor(), infoResponse.getMinor()));
             properties.put(Thing.PROPERTY_HARDWARE_VERSION, Integer.toString(infoResponse.getHardware()));
-            properties.put(BlueGigaBindingConstants.PROPERTY_PROTOCOL,
+            properties.put(BlueGigaAdapterConstants.PROPERTY_PROTOCOL,
                     Integer.toString(infoResponse.getProtocolVersion()));
-            properties.put(BlueGigaBindingConstants.PROPERTY_LINKLAYER, Integer.toString(infoResponse.getLlVersion()));
+            properties.put(BlueGigaAdapterConstants.PROPERTY_LINKLAYER, Integer.toString(infoResponse.getLlVersion()));
             updateProperties(properties);
         });
     }
