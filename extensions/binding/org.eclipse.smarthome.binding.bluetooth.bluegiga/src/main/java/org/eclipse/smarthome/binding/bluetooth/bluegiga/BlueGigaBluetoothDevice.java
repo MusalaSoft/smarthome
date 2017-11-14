@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-package org.eclipse.smarthome.binding.bluetooth.bluegiga.handler;
+package org.eclipse.smarthome.binding.bluetooth.bluegiga;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -15,6 +15,7 @@ import org.eclipse.smarthome.binding.bluetooth.BluetoothCharacteristic;
 import org.eclipse.smarthome.binding.bluetooth.BluetoothCompletionStatus;
 import org.eclipse.smarthome.binding.bluetooth.BluetoothDevice;
 import org.eclipse.smarthome.binding.bluetooth.BluetoothService;
+import org.eclipse.smarthome.binding.bluetooth.bluegiga.handler.BlueGigaBridgeHandler;
 import org.eclipse.smarthome.binding.bluetooth.notification.BluetoothConnectionStatusNotification;
 import org.eclipse.smarthome.binding.bluetooth.notification.BluetoothScanNotification;
 import org.eclipse.smarthome.binding.bluetooth.notification.BluetoothScanNotification.BluetoothBeaconType;

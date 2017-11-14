@@ -27,6 +27,7 @@ import org.eclipse.smarthome.binding.bluetooth.BluetoothDevice;
 import org.eclipse.smarthome.binding.bluetooth.BluetoothDeviceListener;
 import org.eclipse.smarthome.binding.bluetooth.BluetoothDiscoveryListener;
 import org.eclipse.smarthome.binding.bluetooth.bluegiga.BlueGigaAdapterConstants;
+import org.eclipse.smarthome.binding.bluetooth.bluegiga.BlueGigaBluetoothDevice;
 import org.eclipse.smarthome.core.thing.Bridge;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
