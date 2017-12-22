@@ -6,6 +6,5 @@
 
 	<name>Bluetooth Binding</name>
 	<description>This binding supports the Bluetooth protocol.</description>
-	<author>Chris Jackson</author>
 
 </binding:binding>
