@@ -3,16 +3,9 @@
 	xmlns:thing="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0"
 	xsi:schemaLocation="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0 http://eclipse.org/smarthome/schemas/thing-description-1.0.0.xsd">
 
-	<bridge-type id="bluegiga">
-		<label>BlueGiga Bluetooth Dongle</label>
-		<description>Serial interface to the BlueGiga dongle</description>
-
-		<config-description>
-			<parameter name="port" type="text" required="true">
-				<label>Port</label>
-				<description>Serial Port</description>
-			</parameter>
-		</config-description>
+	<bridge-type id="bluez">
+		<label>BlueZ Bluetooth Bridge</label>
+		<description>BlueZ Bluetooth Bridge using D-Bus</description>
 	</bridge-type>
 
 </thing:thing-descriptions>
