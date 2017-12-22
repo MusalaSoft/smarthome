@@ -21,27 +21,26 @@ import org.eclipse.smarthome.binding.bluetooth.BluetoothCompletionStatus;
 import org.eclipse.smarthome.binding.bluetooth.BluetoothDevice;
 import org.eclipse.smarthome.binding.bluetooth.BluetoothService;
 import org.eclipse.smarthome.binding.bluetooth.bluegiga.handler.BlueGigaBridgeHandler;
+import org.eclipse.smarthome.binding.bluetooth.bluegiga.internal.BlueGigaEventListener;
+import org.eclipse.smarthome.binding.bluetooth.bluegiga.internal.BlueGigaResponse;
+import org.eclipse.smarthome.binding.bluetooth.bluegiga.internal.command.attributeclient.BlueGigaAttributeValueEvent;
+import org.eclipse.smarthome.binding.bluetooth.bluegiga.internal.command.attributeclient.BlueGigaFindInformationFoundEvent;
+import org.eclipse.smarthome.binding.bluetooth.bluegiga.internal.command.attributeclient.BlueGigaGroupFoundEvent;
+import org.eclipse.smarthome.binding.bluetooth.bluegiga.internal.command.attributeclient.BlueGigaProcedureCompletedEvent;
+import org.eclipse.smarthome.binding.bluetooth.bluegiga.internal.command.connection.BlueGigaConnectionStatusEvent;
+import org.eclipse.smarthome.binding.bluetooth.bluegiga.internal.command.connection.BlueGigaDisconnectedEvent;
+import org.eclipse.smarthome.binding.bluetooth.bluegiga.internal.command.gap.BlueGigaScanResponseEvent;
+import org.eclipse.smarthome.binding.bluetooth.bluegiga.internal.eir.EirDataType;
+import org.eclipse.smarthome.binding.bluetooth.bluegiga.internal.eir.EirPacket;
+import org.eclipse.smarthome.binding.bluetooth.bluegiga.internal.enumeration.BgApiResponse;
+import org.eclipse.smarthome.binding.bluetooth.bluegiga.internal.enumeration.BluetoothAddressType;
+import org.eclipse.smarthome.binding.bluetooth.bluegiga.internal.enumeration.ConnectionStatusFlag;
+import org.eclipse.smarthome.binding.bluetooth.bluegiga.internal.enumeration.ScanResponseType;
 import org.eclipse.smarthome.binding.bluetooth.notification.BluetoothConnectionStatusNotification;
 import org.eclipse.smarthome.binding.bluetooth.notification.BluetoothScanNotification;
 import org.eclipse.smarthome.binding.bluetooth.notification.BluetoothScanNotification.BluetoothBeaconType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.zsmartsystems.bluetooth.bluegiga.BlueGigaEventListener;
-import com.zsmartsystems.bluetooth.bluegiga.BlueGigaResponse;
-import com.zsmartsystems.bluetooth.bluegiga.command.attributeclient.BlueGigaAttributeValueEvent;
-import com.zsmartsystems.bluetooth.bluegiga.command.attributeclient.BlueGigaFindInformationFoundEvent;
-import com.zsmartsystems.bluetooth.bluegiga.command.attributeclient.BlueGigaGroupFoundEvent;
-import com.zsmartsystems.bluetooth.bluegiga.command.attributeclient.BlueGigaProcedureCompletedEvent;
-import com.zsmartsystems.bluetooth.bluegiga.command.connection.BlueGigaConnectionStatusEvent;
-import com.zsmartsystems.bluetooth.bluegiga.command.connection.BlueGigaDisconnectedEvent;
-import com.zsmartsystems.bluetooth.bluegiga.command.gap.BlueGigaScanResponseEvent;
-import com.zsmartsystems.bluetooth.bluegiga.eir.EirDataType;
-import com.zsmartsystems.bluetooth.bluegiga.eir.EirPacket;
-import com.zsmartsystems.bluetooth.bluegiga.enumeration.BgApiResponse;
-import com.zsmartsystems.bluetooth.bluegiga.enumeration.BluetoothAddressType;
-import com.zsmartsystems.bluetooth.bluegiga.enumeration.ConnectionStatusFlag;
-import com.zsmartsystems.bluetooth.bluegiga.enumeration.ScanResponseType;
 
 /**
  * An extended {@link BluetoothDevice} class to handle BlueGiga specific information

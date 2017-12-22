@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.eclipse.smarthome.binding.bluetooth.bluegiga.internal;
+package org.eclipse.smarthome.binding.bluetooth.bluegiga.internal.factory;
 
 import java.util.Collections;
 import java.util.HashMap;
