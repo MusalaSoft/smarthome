@@ -8,8 +8,7 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ClassPath: .,
  lib/tinyb-1.0.0.jar
 Bundle-NativeCode: 
- lib/armv6hf/libjavatinyb.so;processor=arm;osname=linux,
- lib/armv6hf/libtinyb.so;processor=arm;osname=linux,
+ lib/armv6hf/libjavatinyb.so;lib/armv6hf/libtinyb.so;processor=arm;osname=linux,
  *
 Import-Package: org.eclipse.jdt.annotation;resolution:=optional,
  org.eclipse.smarthome.binding.bluetooth,

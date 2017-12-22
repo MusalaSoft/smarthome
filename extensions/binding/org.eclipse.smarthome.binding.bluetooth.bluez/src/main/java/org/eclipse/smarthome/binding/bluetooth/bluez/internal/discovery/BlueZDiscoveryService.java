@@ -72,11 +72,12 @@ public class BlueZDiscoveryService extends AbstractDiscoveryService {
 
     private DiscoveryResult createDiscoveryResult(BluetoothAdapter adapter) {
         return DiscoveryResultBuilder.create(new ThingUID(BlueZAdapterConstants.THING_TYPE_BLUEZ, getId(adapter)))
-                .withLabel(adapter.getName()).withProperty(BlueZAdapterConstants.PROPERTY_ADDRESS, adapter.getAddress())
+                .withLabel("Bluetooth Interface " + adapter.getName())
+                .withProperty(BlueZAdapterConstants.PROPERTY_ADDRESS, adapter.getAddress())
                 .withRepresentationProperty(BlueZAdapterConstants.PROPERTY_ADDRESS).build();
     }
 
     private String getId(BluetoothAdapter adapter) {
-        return adapter.getAddress().replaceAll("[^a-zA-Z0-9_]", "");
+        return adapter.getInterfaceName().replaceAll("[^a-zA-Z0-9_]", "");
     }
 }

@@ -149,7 +149,7 @@ public class BluetoothDiscoveryService extends AbstractDiscoveryService {
 
         // We did not find a thing type for this device, so let's treat it as a generic one
         String label = device.getName();
-        if (label == null || label.length() == 0) {
+        if (label == null || label.length() == 0 || label.equals(device.getAddress().toString().replace(':', '-'))) {
             label = "Bluetooth Device";
         }
 

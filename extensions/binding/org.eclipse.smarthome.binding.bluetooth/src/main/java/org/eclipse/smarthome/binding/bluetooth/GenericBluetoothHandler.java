@@ -63,8 +63,6 @@ public class GenericBluetoothHandler extends BaseThingHandler implements Bluetoo
             return;
         }
 
-        updateStatus(ThingStatus.ONLINE);
-
         BridgeHandler bridgeHandler = getBridge().getHandler();
         if (!(bridgeHandler instanceof BluetoothAdapter)) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
@@ -75,11 +73,15 @@ public class GenericBluetoothHandler extends BaseThingHandler implements Bluetoo
         adapter = (BluetoothAdapter) bridgeHandler;
         device = adapter.getDevice(address);
         device.addListener(this);
+        updateStatus(ThingStatus.ONLINE);
     }
 
     @Override
     public void dispose() {
-        device.removeListener(this);
+        if (device != null) {
+            device.removeListener(this);
+            device = null;
+        }
     }
 
     @Override
