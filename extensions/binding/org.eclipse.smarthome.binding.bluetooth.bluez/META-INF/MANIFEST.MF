@@ -6,7 +6,7 @@ Bundle-Vendor: Eclipse.org/SmartHome
 Bundle-Version: 0.10.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ClassPath: .,
- lib/tinyb-1.0.0.jar
+ lib/tinyb-0.5.0-28.jar
 Bundle-NativeCode: 
  lib/armv6hf/libjavatinyb.so;lib/armv6hf/libtinyb.so;processor=arm;osname=linux,
  *
