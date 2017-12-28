@@ -36,6 +36,7 @@ import org.eclipse.smarthome.core.types.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import tinyb.BluetoothException;
 import tinyb.BluetoothManager;
 
 /**
@@ -81,6 +82,7 @@ public class BlueZBridgeHandler extends BaseBridgeHandler implements BluetoothAd
             if (a.getAddress().equals(address.toString())) {
                 adapter = a;
                 updateStatus(ThingStatus.ONLINE);
+                adapter.startDiscovery();
                 discoveryJob = scheduler.scheduleWithFixedDelay(() -> {
                     checkForNewDevices();
                 }, 0, 10, TimeUnit.SECONDS);
@@ -111,16 +113,38 @@ public class BlueZBridgeHandler extends BaseBridgeHandler implements BluetoothAd
 
     @Override
     public void scanStart() {
+        adapter.setRssiDiscoveryFilter(-96);
         adapter.startDiscovery();
         for (tinyb.BluetoothDevice tinybDevice : adapter.getDevices()) {
-            BluetoothDevice device = getDevice(new BluetoothAddress(tinybDevice.getAddress()));
-            notifyEventListeners(device);
+            synchronized (devices) {
+                logger.debug("Device {} has RSSI {}", tinybDevice.getAddress(), tinybDevice.getRSSI());
+                BluetoothDevice device = devices.get(tinybDevice.getAddress());
+                if (device == null) {
+                    createAndRegisterBlueZDevice(tinybDevice);
+                } else {
+                    // let's update the rssi and txpower values
+                    device.setRssi(tinybDevice.getRSSI());
+                    device.setTxPower(tinybDevice.getTxPower());
+                    // The Bluetooth discovery expects a complete list on every scan,
+                    // so we also have to report the already known devices.
+                    notifyEventListeners(device);
+                }
+            }
         }
     }
 
     @Override
     public void scanStop() {
-        adapter.stopDiscovery();
+        if (adapter.getDiscovering()) {
+            try {
+                adapter.stopDiscovery();
+            } catch (BluetoothException e) {
+                // tinyb often throws the exception
+                // tinyb.BluetoothException: GDBus.Error:org.bluez.Error.Failed: No discovery started
+                // here, although we first check whether discovery is active or not.
+                // As a workaround, we simply ignore this exception.
+            }
+        }
     }
 
     @Override
@@ -130,12 +154,14 @@ public class BlueZBridgeHandler extends BaseBridgeHandler implements BluetoothAd
 
     @Override
     public BluetoothDevice getDevice(BluetoothAddress address) {
-        if (devices.containsKey(address.toString())) {
-            return devices.get(address.toString());
-        } else {
-            BluetoothDevice device = new BlueZBluetoothDevice(this, address, "");
-            devices.put(address.toString(), device);
-            return device;
+        synchronized (devices) {
+            if (devices.containsKey(address.toString())) {
+                return devices.get(address.toString());
+            } else {
+                BluetoothDevice device = new BlueZBluetoothDevice(this, address, "");
+                devices.put(address.toString(), device);
+                return device;
+            }
         }
     }
 
@@ -152,18 +178,38 @@ public class BlueZBridgeHandler extends BaseBridgeHandler implements BluetoothAd
     }
 
     private void checkForNewDevices() {
-        for (tinyb.BluetoothDevice tinybDevice : adapter.getDevices()) {
-            if (!devices.containsKey(tinybDevice.getAddress())) {
-                createAndRegisterBlueZDevice(tinybDevice);
+        for (tinyb.BluetoothDevice tinybDevice : BluetoothManager.getBluetoothManager().getDevices()) {
+            synchronized (devices) {
+                BlueZBluetoothDevice device = (BlueZBluetoothDevice) devices.get(tinybDevice.getAddress());
+                if (device == null) {
+                    createAndRegisterBlueZDevice(tinybDevice);
+                } else {
+                    device.setTinybDevice(tinybDevice);
+                }
             }
         }
     }
 
-    private void createAndRegisterBlueZDevice(tinyb.BluetoothDevice tinybDevice) {
+    private BlueZBluetoothDevice createAndRegisterBlueZDevice(tinyb.BluetoothDevice tinybDevice) {
         BlueZBluetoothDevice device = new BlueZBluetoothDevice(this, tinybDevice);
         devices.put(tinybDevice.getAddress(), device);
         notifyEventListeners(device);
-        device.activateSubscriptions();
+        enableBroadcastNotifications(tinybDevice);
+        return device;
+    }
+
+    private void enableBroadcastNotifications(tinyb.BluetoothDevice tinybDevice) {
+        logger.debug("Enabling broadcast notifications for device '{}'", tinybDevice.getAddress());
+        tinybDevice.enableRSSINotifications(n -> {
+            BluetoothDevice device = getDevice(new BluetoothAddress(tinybDevice.getAddress()));
+            device.setRssi(n);
+            notifyEventListeners(device);
+        });
+        tinybDevice.enableManufacturerDataNotifications(data -> {
+            for (Short key : data.keySet()) {
+                logger.info("{} -> {}", key, data.get(key));
+            }
+        });
     }
 
     private void notifyEventListeners(BluetoothDevice device) {

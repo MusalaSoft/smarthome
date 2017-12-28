@@ -12,11 +12,10 @@
  */
 package org.eclipse.smarthome.binding.bluetooth.bluez;
 
-import java.util.List;
-
 import org.eclipse.smarthome.binding.bluetooth.BluetoothAddress;
 import org.eclipse.smarthome.binding.bluetooth.BluetoothDevice;
 import org.eclipse.smarthome.binding.bluetooth.bluez.handler.BlueZBridgeHandler;
+import org.eclipse.smarthome.binding.bluetooth.notification.BluetoothConnectionStatusNotification;
 import org.eclipse.smarthome.binding.bluetooth.notification.BluetoothScanNotification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,29 +36,56 @@ public class BlueZBluetoothDevice extends BluetoothDevice {
         super(adapter, address);
         this.name = name;
         logger.debug("Creating BlueZ device with address '{}'", address);
-        initDevice();
+        tinyb.BluetoothDevice tinybDevice = findTinybDevice(address.toString());
+        if (tinybDevice != null) {
+            setTinybDevice(tinybDevice);
+        }
     }
 
     public BlueZBluetoothDevice(BlueZBridgeHandler adapter, tinyb.BluetoothDevice tinybDevice) {
         super(adapter, new BluetoothAddress(tinybDevice.getAddress()));
         this.name = tinybDevice.getName();
-        this.device = tinybDevice;
+        setTinybDevice(tinybDevice);
     }
 
-    private synchronized void initDevice() {
-        if (device == null) {
-            List<tinyb.BluetoothDevice> devices = ((BlueZBridgeHandler) getAdapter()).getTinyBAdapter().getDevices();
-            device = devices.stream().filter(d -> d.getAddress().equals(getAddress().toString())).findFirst()
-                    .orElse(null);
+    private tinyb.BluetoothDevice findTinybDevice(String address) {
+        return ((BlueZBridgeHandler) getAdapter()).getTinyBAdapter().find(null, address);
+    }
+
+    public synchronized void setTinybDevice(tinyb.BluetoothDevice tinybDevice) {
+        boolean init = (device == null);
+        this.device = tinybDevice;
+        this.rssi = (int) tinybDevice.getRSSI();
+        this.txPower = (int) tinybDevice.getTxPower();
+        if (init) {
+            enableNotifications();
         }
     }
 
-    public void activateSubscriptions() {
+    private void enableNotifications() {
+        logger.debug("Enabling notifications for device '{}'", device.getAddress());
         device.enableRSSINotifications(n -> {
             rssi = (int) n;
             BluetoothScanNotification notification = new BluetoothScanNotification();
             notification.setRssi(n);
             notifyListeners(BluetoothEventType.SCAN_RECORD, notification);
+        });
+        device.enableManufacturerDataNotifications(data -> {
+            for (Short key : data.keySet()) {
+                logger.info("{} -> {}", key, data.get(key));
+            }
+        });
+        device.enableConnectedNotifications(connected -> {
+            connectionState = connected ? ConnectionState.CONNECTED : ConnectionState.DISCONNECTED;
+            logger.debug("Connection state of '{}' changed to {}", address, connectionState);
+            notifyListeners(BluetoothEventType.CONNECTION_STATE,
+                    new BluetoothConnectionStatusNotification(connectionState));
+        });
+        device.enableServicesResolvedNotifications(resolved -> {
+            logger.debug("Received services resolved event for '{}': {}", address, resolved);
+            if (resolved) {
+                notifyListeners(BluetoothEventType.SERVICES_DISCOVERED);
+            }
         });
     }
 
