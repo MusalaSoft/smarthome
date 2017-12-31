@@ -18,15 +18,17 @@ import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import org.eclipse.smarthome.core.common.ThreadPoolManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,55 +36,40 @@ import org.slf4j.LoggerFactory;
  * The main handler class for interacting with the BlueGiga serial API. This class provides transaction management and
  * queuing of of data, and conversion of packets from the serial stream into command and response classes.
  *
- * @author Chris Jackson
+ * @author Chris Jackson - Initial contribution and API
  *
  */
 public class BlueGigaSerialHandler {
-    /**
-     * The logger.
-     */
+
+    private static final int BLE_MAX_LENGTH = 64;
+    private static final int TRANSACTION_TIMEOUT_PERIOD = 50;
+
     private final Logger logger = LoggerFactory.getLogger(BlueGigaSerialHandler.class);
-
-    private final int BLE_MAX_LENGTH = 64;
-
-    /**
-     * The portName portName input stream.
-     */
-    private final InputStream inputStream;
 
     /**
      * The portName portName output stream.
      */
     private final OutputStream outputStream;
-
     private final Queue<BlueGigaCommand> sendQueue = new LinkedList<BlueGigaCommand>();
-
     private final Timer timer = new Timer();
     private TimerTask timerTask = null;
-
-    private final int TRANSACTION_TIMEOUT_PERIOD = 50;
-
-    /**
-     * The parser parserThread.
-     */
     private Thread parserThread = null;
-
-    private final ExecutorService executor = Executors.newCachedThreadPool();
+    private final ExecutorService executor = ThreadPoolManager.getPool("bluegiga");
 
     /**
      * Transaction listeners are used internally to correlate the commands and responses
      */
-    private final List<BleListener> transactionListeners = new CopyOnWriteArrayList<BleListener>();
+    private final List<BluetoothListener> transactionListeners = new CopyOnWriteArrayList<BluetoothListener>();
 
     /**
      * The event listeners will be notified of any asynchronous events
      */
-    private final List<BlueGigaEventListener> eventListeners = new CopyOnWriteArrayList<BlueGigaEventListener>();
+    private final Set<BlueGigaEventListener> eventListeners = new CopyOnWriteArraySet<>();
 
     /**
      * The event listeners will be notified of any life-cycle events of the handler.
      */
-    private final List<BlueGigaHandlerListener> hanlerListeners = new CopyOnWriteArrayList<>();
+    private final Set<BlueGigaHandlerListener> handlerListeners = new CopyOnWriteArraySet<>();
 
     /**
      * Flag reflecting that parser has been closed and parser parserThread
@@ -91,7 +78,6 @@ public class BlueGigaSerialHandler {
     private boolean close = false;
 
     public BlueGigaSerialHandler(final InputStream inputStream, final OutputStream outputStream) {
-        this.inputStream = inputStream;
         this.outputStream = outputStream;
 
         final int framecheckParams[] = new int[] { 0x00, 0x7F, 0xC0, 0xF8, 0xE0 };
@@ -139,8 +125,8 @@ public class BlueGigaSerialHandler {
                             // End of packet reached - process
                             BlueGigaResponse responsePacket = BlueGigaResponsePackets.getPacket(inputBuffer);
 
-                            logger.debug("BLE RX: {}", printHex(inputBuffer, inputLength));
-                            logger.debug("BLE RX: {}", responsePacket);
+                            logger.trace("BLE RX: {}", printHex(inputBuffer, inputLength));
+                            logger.trace("BLE RX: {}", responsePacket);
                             if (responsePacket != null) {
                                 if (responsePacket.isEvent()) {
                                     notifyEventListeners(responsePacket);
@@ -199,40 +185,21 @@ public class BlueGigaSerialHandler {
         // Send the data
         try {
             int[] payload = bleFrame.serialize();
-            logger.debug("TX BLE frame: {}", printHex(payload, payload.length));
-
-            // outputStream.write(payload.length);
+            logger.trace("TX BLE frame: {}", printHex(payload, payload.length));
             for (int b : payload) {
-                // result.append(" ");
-                // result.append(String.format("%02X", b));
-                // logger.debug("BLE TX: " + String.format("%02X", b));
                 outputStream.write(b);
             }
         } catch (IOException e) {
             logger.debug(e.getMessage());
         }
 
-        // logger.debug(result.toString());
-        logger.debug("--> TX BLE frame: {}", bleFrame);
+        logger.trace("--> TX BLE frame: {}", bleFrame);
     }
 
     // Synchronize this method so we can do the window check without interruption.
     // Otherwise this method could be called twice from different threads that could end up with
     // more than the TX_WINDOW number of frames sent.
     private synchronized void sendNextFrame() {
-        // We're not allowed to send if we're not connected
-        // if (!stateConnected) {
-        // logger.warn("Trying to send when not connected.");
-        // return;
-        // }
-
-        // Check how many frames are outstanding
-        // if (sentQueue.size() >= TX_WINDOW) {
-        // logger.debug("Sent queue larger than window [{} > {}].",
-        // sentQueue.size(), TX_WINDOW);
-        // return;
-        // }
-
         BlueGigaCommand nextFrame = sendQueue.poll();
         if (nextFrame == null) {
             // Nothing to send
@@ -251,14 +218,10 @@ public class BlueGigaSerialHandler {
      *            {@link BlueGigaCommand}
      */
     public void queueFrame(BlueGigaCommand request) {
-        logger.debug("TX BLE frame: {}", request);
-
+        logger.trace("TX BLE frame: {}", request);
         checkIfAlive();
-
         sendQueue.add(request);
-
-        logger.debug("TX BLE queue: {}", sendQueue.size());
-
+        logger.trace("TX BLE queue: {}", sendQueue.size());
         sendNextFrame();
     }
 
@@ -275,7 +238,7 @@ public class BlueGigaSerialHandler {
         // logger.debug("NODE {}: notifyTransactionResponse {}",
         // transaction.getNodeId(), transaction.getTransactionId());
         synchronized (transactionListeners) {
-            for (BleListener listener : transactionListeners) {
+            for (BluetoothListener listener : transactionListeners) {
                 if (listener.transactionEvent(response)) {
                     processed = true;
                 }
@@ -285,7 +248,7 @@ public class BlueGigaSerialHandler {
         return processed;
     }
 
-    private void addTransactionListener(BleListener listener) {
+    private void addTransactionListener(BluetoothListener listener) {
         synchronized (transactionListeners) {
             if (transactionListeners.contains(listener)) {
                 return;
@@ -295,7 +258,7 @@ public class BlueGigaSerialHandler {
         }
     }
 
-    private void removeTransactionListener(BleListener listener) {
+    private void removeTransactionListener(BluetoothListener listener) {
         synchronized (transactionListeners) {
             transactionListeners.remove(listener);
         }
@@ -310,7 +273,7 @@ public class BlueGigaSerialHandler {
      */
     public Future<BlueGigaResponse> sendBleRequestAsync(final BlueGigaCommand bleCommand) {
         checkIfAlive();
-        class TransactionWaiter implements Callable<BlueGigaResponse>, BleListener {
+        class TransactionWaiter implements Callable<BlueGigaResponse>, BluetoothListener {
             private boolean complete = false;
             private BlueGigaResponse response = null;
 
@@ -387,6 +350,7 @@ public class BlueGigaSerialHandler {
     }
 
     // TODO: Add a timeout mechanism
+    @SuppressWarnings("unused")
     private synchronized void startTransactionTimer() {
         // Stop any existing timer
         resetTransactionTimer();
@@ -426,45 +390,32 @@ public class BlueGigaSerialHandler {
         synchronized (this) {
             // Notify the listeners
             for (final BlueGigaEventListener listener : eventListeners) {
-                NotificationService.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        listener.bluegigaEventReceived(response);
-                    }
-                });
+                executor.submit(() -> listener.bluegigaEventReceived(response));
             }
         }
     }
 
     public void addEventListener(BlueGigaEventListener listener) {
         synchronized (eventListeners) {
-            if (eventListeners.contains(listener)) {
-                return;
-            }
-
             eventListeners.add(listener);
         }
     }
 
     /**
      * Adds a handler listener.
-     * 
+     *
      * @param listener a new handler listener
      */
     public void addHandlerListener(BlueGigaHandlerListener listener) {
-        synchronized (hanlerListeners) {
-            if (hanlerListeners.contains(listener)) {
-                return;
-            }
-
-            hanlerListeners.add(listener);
-        }
+        handlerListeners.add(listener);
     }
 
     public void removeEventListener(BlueGigaEventListener listener) {
-        synchronized (eventListeners) {
-            eventListeners.remove(listener);
-        }
+        eventListeners.remove(listener);
+    }
+
+    public void removeHandlerListener(BlueGigaHandlerListener listener) {
+        handlerListeners.remove(listener);
     }
 
     private String printHex(int[] data, int len) {
@@ -493,16 +444,17 @@ public class BlueGigaSerialHandler {
         // It should be safe enough not to use the NotificationService as this is a fatal error, no any further actions
         // can be done with the handler, a new handler should be re-created
         // There is another reason why NotificationService can't be used - the listeners should be notified immidiately
-        for (BlueGigaHandlerListener listener : hanlerListeners) {
+        for (BlueGigaHandlerListener listener : handlerListeners) {
             try {
                 listener.bluegigaClosed(reason);
             } catch (Exception ex) {
-                logger.warn("Execution  error of a BlueGigaHandlerListener listener.", ex);
+                logger.warn("Execution error of a BlueGigaHandlerListener listener.", ex);
             }
         }
     }
 
-    interface BleListener {
+    interface BluetoothListener {
         boolean transactionEvent(BlueGigaResponse bleResponse);
     }
+
 }

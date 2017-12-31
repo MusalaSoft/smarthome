@@ -12,16 +12,19 @@
  */
 package org.eclipse.smarthome.binding.bluetooth.bluegiga.internal;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+
 /**
- * A lisener to track {@link BlueGigaSerialHandler} life cycle events.
+ * A listener to track {@link BlueGigaSerialHandler} life cycle events.
  *
- * @author Chris Jackson
- * @author Vlad Kolotov
+ * @author Chris Jackson - Initial contribution and API
  */
+@NonNullByDefault
 public interface BlueGigaHandlerListener {
 
     /**
      * Notifies when the handler gets closed because of the reason specified as an argument.
+     *
      * @param reason a reason caused to be closed
      */
     void bluegigaClosed(Exception reason);

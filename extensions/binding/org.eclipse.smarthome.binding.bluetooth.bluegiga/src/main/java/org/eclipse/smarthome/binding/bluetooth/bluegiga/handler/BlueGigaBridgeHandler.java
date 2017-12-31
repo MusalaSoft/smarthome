@@ -35,6 +35,7 @@ import org.eclipse.smarthome.binding.bluetooth.bluegiga.BlueGigaAdapterConstants
 import org.eclipse.smarthome.binding.bluetooth.bluegiga.BlueGigaBluetoothDevice;
 import org.eclipse.smarthome.binding.bluetooth.bluegiga.internal.BlueGigaCommand;
 import org.eclipse.smarthome.binding.bluetooth.bluegiga.internal.BlueGigaEventListener;
+import org.eclipse.smarthome.binding.bluetooth.bluegiga.internal.BlueGigaHandlerListener;
 import org.eclipse.smarthome.binding.bluetooth.bluegiga.internal.BlueGigaResponse;
 import org.eclipse.smarthome.binding.bluetooth.bluegiga.internal.BlueGigaSerialHandler;
 import org.eclipse.smarthome.binding.bluetooth.bluegiga.internal.command.attributeclient.BlueGigaAttributeWriteCommand;
@@ -100,10 +101,12 @@ import gnu.io.UnsupportedCommOperationException;
  * including new devices.
  *
  * @author Chris Jackson - Initial contribution
+ * @author Kai Kreuzer - Made handler implement BlueGigaHandlerListener
  */
 @NonNullByDefault({ DefaultLocation.PARAMETER, DefaultLocation.RETURN_TYPE, DefaultLocation.ARRAY_CONTENTS,
         DefaultLocation.TYPE_ARGUMENT, DefaultLocation.TYPE_BOUND, DefaultLocation.TYPE_PARAMETER })
-public class BlueGigaBridgeHandler extends BaseBridgeHandler implements BluetoothAdapter, BlueGigaEventListener {
+public class BlueGigaBridgeHandler extends BaseBridgeHandler
+        implements BluetoothAdapter, BlueGigaEventListener, BlueGigaHandlerListener {
 
     private final Logger logger = LoggerFactory.getLogger(BlueGigaBridgeHandler.class);
 
@@ -161,7 +164,6 @@ public class BlueGigaBridgeHandler extends BaseBridgeHandler implements Bluetoot
 
     @Override
     public void initialize() {
-        final BlueGigaBridgeHandler me = this;
         final String portId = (String) getConfig().get(BlueGigaAdapterConstants.CONFIGURATION_PORT);
 
         if (portId == null) {
@@ -171,8 +173,8 @@ public class BlueGigaBridgeHandler extends BaseBridgeHandler implements Bluetoot
         openSerialPort(portId, 115200);
         bgHandler = new BlueGigaSerialHandler(inputStream, outputStream);
         // Create and send the reset command to the dongle
-        bgHandler.addEventListener(me);
-        bgHandler.addEventListener(me);
+        bgHandler.addEventListener(this);
+        bgHandler.addHandlerListener(this);
 
         updateStatus(ThingStatus.UNKNOWN);
 
@@ -229,6 +231,10 @@ public class BlueGigaBridgeHandler extends BaseBridgeHandler implements Bluetoot
 
     @Override
     public void dispose() {
+        if (bgHandler != null) {
+            bgHandler.removeEventListener(this);
+            bgHandler.removeHandlerListener(this);
+        }
         closeSerialPort();
     }
 
@@ -581,6 +587,11 @@ public class BlueGigaBridgeHandler extends BaseBridgeHandler implements Bluetoot
     @Override
     public void removeDiscoveryListener(@Nullable BluetoothDiscoveryListener listener) {
         discoveryListeners.remove(listener);
+    }
+
+    @Override
+    public void bluegigaClosed(Exception reason) {
+        updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, reason.getMessage());
     }
 
 }

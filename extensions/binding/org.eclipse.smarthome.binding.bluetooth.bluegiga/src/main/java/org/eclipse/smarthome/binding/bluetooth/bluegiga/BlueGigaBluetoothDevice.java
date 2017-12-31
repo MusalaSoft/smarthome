@@ -287,7 +287,7 @@ public class BlueGigaBluetoothDevice extends BluetoothDevice implements BlueGiga
                 return;
             }
 
-            logger.debug("BlueGiga Group: {} svcs={}", this, supportedServices);
+            logger.trace("BlueGiga Group: {} svcs={}", this, supportedServices);
 
             BluetoothService service = new BluetoothService(serviceEvent.getUuid(), true, serviceEvent.getStart(),
                     serviceEvent.getEnd());
@@ -305,7 +305,7 @@ public class BlueGigaBluetoothDevice extends BluetoothDevice implements BlueGiga
                 return;
             }
 
-            logger.debug("BlueGiga FindInfo: {} svcs={}", this, supportedServices);
+            logger.trace("BlueGiga FindInfo: {} svcs={}", this, supportedServices);
 
             BluetoothCharacteristic characteristic = new BluetoothCharacteristic(infoEvent.getUuid(),
                     infoEvent.getChrHandle());
