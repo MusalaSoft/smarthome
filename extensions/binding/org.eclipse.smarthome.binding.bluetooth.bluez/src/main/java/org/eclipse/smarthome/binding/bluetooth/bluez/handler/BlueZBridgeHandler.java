@@ -12,6 +12,8 @@
  */
 package org.eclipse.smarthome.binding.bluetooth.bluez.handler;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -171,6 +173,10 @@ public class BlueZBridgeHandler extends BaseBridgeHandler implements BluetoothAd
             discoveryJob.cancel(true);
             discoveryJob = null;
         }
+        for (BluetoothDevice device : devices.values()) {
+            ((BlueZBluetoothDevice) device).dispose();
+        }
+        devices.clear();
     }
 
     public tinyb.BluetoothAdapter getTinyBAdapter() {
@@ -178,13 +184,26 @@ public class BlueZBridgeHandler extends BaseBridgeHandler implements BluetoothAd
     }
 
     private void checkForNewDevices() {
-        for (tinyb.BluetoothDevice tinybDevice : BluetoothManager.getBluetoothManager().getDevices()) {
+        Set<String> newAddresses = new HashSet<>();
+        List<tinyb.BluetoothDevice> tinybDevices = BluetoothManager.getBluetoothManager().getDevices();
+        for (tinyb.BluetoothDevice tinybDevice : tinybDevices) {
             synchronized (devices) {
+                newAddresses.add(tinybDevice.getAddress());
                 BlueZBluetoothDevice device = (BlueZBluetoothDevice) devices.get(tinybDevice.getAddress());
                 if (device == null) {
                     createAndRegisterBlueZDevice(tinybDevice);
                 } else {
                     device.setTinybDevice(tinybDevice);
+                    notifyEventListeners(device);
+                }
+            }
+        }
+        // clean up orphaned entries
+        synchronized (devices) {
+            Set<String> oldAdresses = devices.keySet();
+            for (String address : oldAdresses) {
+                if (!newAddresses.contains(address)) {
+                    devices.remove(address);
                 }
             }
         }
@@ -194,22 +213,7 @@ public class BlueZBridgeHandler extends BaseBridgeHandler implements BluetoothAd
         BlueZBluetoothDevice device = new BlueZBluetoothDevice(this, tinybDevice);
         devices.put(tinybDevice.getAddress(), device);
         notifyEventListeners(device);
-        enableBroadcastNotifications(tinybDevice);
         return device;
-    }
-
-    private void enableBroadcastNotifications(tinyb.BluetoothDevice tinybDevice) {
-        logger.debug("Enabling broadcast notifications for device '{}'", tinybDevice.getAddress());
-        tinybDevice.enableRSSINotifications(n -> {
-            BluetoothDevice device = getDevice(new BluetoothAddress(tinybDevice.getAddress()));
-            device.setRssi(n);
-            notifyEventListeners(device);
-        });
-        tinybDevice.enableManufacturerDataNotifications(data -> {
-            for (Short key : data.keySet()) {
-                logger.info("{} -> {}", key, data.get(key));
-            }
-        });
     }
 
     private void notifyEventListeners(BluetoothDevice device) {
