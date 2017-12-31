@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * The {@link BluetoothCharacteristic} class defines the BLE Characteristic.
+ * The {@link BluetoothCharacteristic} class defines the Bluetooth characteristic.
  * <p>
  * Characteristics are defined attribute types that contain a single logical value.
  * <p>
@@ -223,6 +223,18 @@ public class BluetoothCharacteristic {
     }
 
     /**
+     * Get the stored value for this characteristic.
+     *
+     */
+    public byte[] getByteValue() {
+        byte[] byteValue = new byte[value.length];
+        for (int cnt = 0; cnt < value.length; cnt++) {
+            byteValue[cnt] = (byte) (value[cnt] & 0xFF);
+        }
+        return byteValue;
+    }
+
+    /**
      * Return the stored value of this characteristic.
      *
      */
@@ -386,6 +398,19 @@ public class BluetoothCharacteristic {
      * Set the local value of this characteristic.
      *
      */
+    public boolean setValue(byte[] value) {
+        this.value = new int[value.length];
+        int cnt = 0;
+        for (byte val : value) {
+            this.value[cnt++] = val;
+        }
+        return true;
+    }
+
+    /**
+     * Set the local value of this characteristic.
+     *
+     */
     public boolean setValue(String value) {
         this.value = new int[value.getBytes().length];
         int cnt = 0;
@@ -446,9 +471,10 @@ public class BluetoothCharacteristic {
      */
     private int unsignedToSigned(int unsigned, int size) {
         if ((unsigned & (1 << size - 1)) != 0) {
-            unsigned = -1 * ((1 << size - 1) - (unsigned & ((1 << size - 1) - 1)));
+            return -1 * ((1 << size - 1) - (unsigned & ((1 << size - 1) - 1)));
+        } else {
+            return unsigned;
         }
-        return unsigned;
     }
 
     /**
@@ -456,12 +482,13 @@ public class BluetoothCharacteristic {
      */
     private int intToSignedBits(int i, int size) {
         if (i < 0) {
-            i = (1 << size - 1) + (i & ((1 << size - 1) - 1));
+            return (1 << size - 1) + (i & ((1 << size - 1) - 1));
+        } else {
+            return i;
         }
-        return i;
     }
 
-    public GattCharacteristic getCharacteristic() {
+    public GattCharacteristic getGattCharacteristic() {
         return GattCharacteristic.getCharacteristic(uuid);
     }
 
