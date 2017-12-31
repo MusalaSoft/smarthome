@@ -15,7 +15,7 @@ package org.eclipse.smarthome.binding.bluetooth.notification;
 import org.eclipse.smarthome.binding.bluetooth.BluetoothAddress;
 
 /**
- * The {@link BluetoothNotification} is the base class for BLE device notifications
+ * The {@link BluetoothNotification} is the base class for Bluetooth device notifications
  *
  * @author Chris Jackson - Initial contribution
  */

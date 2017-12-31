@@ -17,18 +17,25 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * The {@link BluetoothDescriptor} class defines the BLE Descriptor.
+ * The {@link BluetoothDescriptor} class defines the Bluetooth descriptor.
  * <p>
  * Descriptors are defined attributes that describe a characteristic value.
  * <p>
  * https://www.bluetooth.com/specifications/gatt/descriptors
  *
  * @author Chris Jackson - Initial contribution
+ * @author Kai Kreuzer - added constructor
  */
 public class BluetoothDescriptor {
-    protected BluetoothCharacteristic characteristic;
-    protected UUID uuid;
+
+    protected final BluetoothCharacteristic characteristic;
+    protected final UUID uuid;
     protected byte[] value;
+
+    public BluetoothDescriptor(BluetoothCharacteristic characteristic, UUID uuid) {
+        this.characteristic = characteristic;
+        this.uuid = uuid;
+    }
 
     /**
      * Returns the characteristic this descriptor belongs to.
@@ -96,7 +103,7 @@ public class BluetoothDescriptor {
 
         private static Map<UUID, GattDescriptor> uuidToServiceMapping;
 
-        private UUID uuid;
+        private final UUID uuid;
 
         private GattDescriptor(long key) {
             this.uuid = new UUID((key << 32) | 0x1000, BluetoothBindingConstants.BLUETOOTH_BASE_UUID);

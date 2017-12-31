@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
  * The {@link BluetoothDevice} class provides a base implementation of a Bluetooth Low Energy device
  *
  * @author Chris Jackson - Initial contribution
- * @author Kai Kreuzer - Refactored class to use Integer instead of int
+ * @author Kai Kreuzer - Refactored class to use Integer instead of int, fixed bugs
  */
 public class BluetoothDevice {
 
@@ -260,8 +260,8 @@ public class BluetoothDevice {
      *
      * @return the current {@link ConnectionState}
      */
-    public void getConnectionState(ConnectionState connectionState) {
-        this.connectionState = connectionState;
+    public ConnectionState getConnectionState() {
+        return connectionState;
     }
 
     /**
@@ -361,9 +361,7 @@ public class BluetoothDevice {
         if (supportedServices.containsKey(service.getUuid())) {
             return false;
         }
-
-        logger.debug("Adding new service to device {}: {}", address, service);
-
+        logger.trace("Adding new service to device {}: {}", address, service);
         supportedServices.put(service.getUuid(), service);
         return true;
     }
