@@ -12,11 +12,12 @@
  */
 package org.eclipse.smarthome.binding.bluetooth.internal;
 
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
+import org.eclipse.smarthome.binding.bluetooth.BeaconBluetoothHandler;
 import org.eclipse.smarthome.binding.bluetooth.BluetoothBindingConstants;
-import org.eclipse.smarthome.binding.bluetooth.GenericBluetoothHandler;
+import org.eclipse.smarthome.binding.bluetooth.ConnectedBluetoothHandler;
 import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandlerFactory;
@@ -33,8 +34,11 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 @Component(service = ThingHandlerFactory.class, immediate = true, configurationPid = "binding.bluetooth", configurationPolicy = ConfigurationPolicy.OPTIONAL)
 public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
 
-    private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Collections
-            .singleton(BluetoothBindingConstants.THING_TYPE_GENERIC);
+    private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = new HashSet<>();
+    static {
+        SUPPORTED_THING_TYPES_UIDS.add(BluetoothBindingConstants.THING_TYPE_BEACON);
+        SUPPORTED_THING_TYPES_UIDS.add(BluetoothBindingConstants.THING_TYPE_CONNECTED);
+    }
 
     @Override
     public boolean supportsThingType(ThingTypeUID thingTypeUID) {
@@ -45,8 +49,10 @@ public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
     protected ThingHandler createHandler(Thing thing) {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
 
-        if (thingTypeUID.equals(BluetoothBindingConstants.THING_TYPE_GENERIC)) {
-            return new GenericBluetoothHandler(thing);
+        if (thingTypeUID.equals(BluetoothBindingConstants.THING_TYPE_BEACON)) {
+            return new BeaconBluetoothHandler(thing);
+        } else if (thingTypeUID.equals(BluetoothBindingConstants.THING_TYPE_CONNECTED)) {
+            return new ConnectedBluetoothHandler(thing);
         }
 
         return null;

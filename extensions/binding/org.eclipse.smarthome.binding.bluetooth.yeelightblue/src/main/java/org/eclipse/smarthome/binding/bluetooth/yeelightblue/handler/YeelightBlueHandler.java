@@ -17,7 +17,7 @@ import java.util.UUID;
 import org.eclipse.smarthome.binding.bluetooth.BluetoothCharacteristic;
 import org.eclipse.smarthome.binding.bluetooth.BluetoothCompletionStatus;
 import org.eclipse.smarthome.binding.bluetooth.BluetoothDeviceListener;
-import org.eclipse.smarthome.binding.bluetooth.GenericBluetoothHandler;
+import org.eclipse.smarthome.binding.bluetooth.ConnectedBluetoothHandler;
 import org.eclipse.smarthome.binding.bluetooth.yeelightblue.YeelightBlueBindingConstants;
 import org.eclipse.smarthome.core.library.types.HSBType;
 import org.eclipse.smarthome.core.library.types.OnOffType;
@@ -33,9 +33,9 @@ import org.slf4j.LoggerFactory;
  * sent to one of the channels.
  *
  * @author Chris Jackson - Initial contribution
- * @author Kai Kreuzer - Refactored to extend {@link GenericBluetoothHandler}.
+ * @author Kai Kreuzer - Refactored to extend {@link ConnectedBluetoothHandler}.
  */
-public class YeelightBlueHandler extends GenericBluetoothHandler implements BluetoothDeviceListener {
+public class YeelightBlueHandler extends ConnectedBluetoothHandler implements BluetoothDeviceListener {
 
     private final Logger logger = LoggerFactory.getLogger(YeelightBlueHandler.class);
 

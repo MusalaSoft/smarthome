@@ -112,7 +112,7 @@ public class BluetoothDiscoveryService extends AbstractDiscoveryService {
     @Override
     public Set<ThingTypeUID> getSupportedThingTypes() {
         Set<ThingTypeUID> supportedThingTypes = new HashSet<>();
-        supportedThingTypes.add(BluetoothBindingConstants.THING_TYPE_GENERIC);
+        supportedThingTypes.add(BluetoothBindingConstants.THING_TYPE_BEACON);
         for (BluetoothDiscoveryParticipant participant : participants) {
             supportedThingTypes.addAll(participant.getSupportedThingTypeUIDs());
         }
@@ -167,7 +167,7 @@ public class BluetoothDiscoveryService extends AbstractDiscoveryService {
             label += " (" + device.getAddress() + ")";
         }
 
-        ThingUID thingUID = new ThingUID(BluetoothBindingConstants.THING_TYPE_GENERIC, adapter.getUID(),
+        ThingUID thingUID = new ThingUID(BluetoothBindingConstants.THING_TYPE_BEACON, adapter.getUID(),
                 device.getAddress().toString().toLowerCase().replace(":", ""));
 
         // Create the discovery result and add to the inbox
