@@ -156,7 +156,7 @@ public class BluetoothDiscoveryService extends AbstractDiscoveryService {
         Map<String, Object> properties = new HashMap<>();
         properties.put(BluetoothBindingConstants.CONFIGURATION_ADDRESS, device.getAddress().toString());
         Integer txPower = device.getTxPower();
-        if (txPower != null) {
+        if (txPower != null && txPower > 0) {
             properties.put(BluetoothBindingConstants.PROPERTY_TXPOWER, Integer.toString(txPower));
         }
         String manufacturer = BluetoothCompanyIdentifiers.get(device.getManufacturerId());
