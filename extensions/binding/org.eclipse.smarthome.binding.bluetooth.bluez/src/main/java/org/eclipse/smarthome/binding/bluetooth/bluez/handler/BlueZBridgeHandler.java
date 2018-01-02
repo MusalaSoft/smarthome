@@ -217,9 +217,18 @@ public class BlueZBridgeHandler extends BaseBridgeHandler implements BluetoothAd
     }
 
     private void notifyEventListeners(BluetoothDevice device) {
-        for (BluetoothDiscoveryListener listener : discoveryListeners) {
-            listener.deviceDiscovered(device);
+        if (deviceReachable(device)) {
+            for (BluetoothDiscoveryListener listener : discoveryListeners) {
+                listener.deviceDiscovered(device);
+            }
+        } else {
+            logger.debug("Not notifying listeners for device '{}', because it is not reachable.", device.getAddress());
         }
+    }
+
+    private boolean deviceReachable(BluetoothDevice device) {
+        Integer rssi = device.getRssi();
+        return rssi != null && rssi != 0;
     }
 
 }
