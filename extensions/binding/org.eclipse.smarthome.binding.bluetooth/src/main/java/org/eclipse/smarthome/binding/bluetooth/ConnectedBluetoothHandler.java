@@ -92,6 +92,21 @@ public class ConnectedBluetoothHandler extends BeaconBluetoothHandler {
     }
 
     @Override
+    protected void updateStatusBasedOnRssi(boolean receivedSignal) {
+        // if there is no signal, we can be sure we are OFFLINE, but if there is a signal, we also have to check whether
+        // we are connected.
+        if (receivedSignal) {
+            if (device.getConnectionState() == ConnectionState.CONNECTED) {
+                updateStatus(ThingStatus.ONLINE);
+            } else {
+                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.NONE, "Device is not connected.");
+            }
+        } else {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR);
+        }
+    }
+
+    @Override
     public void onConnectionStateChange(BluetoothConnectionStatusNotification connectionNotification) {
         switch (connectionNotification.getConnectionState()) {
             case DISCOVERED:

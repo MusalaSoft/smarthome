@@ -1,7 +1,6 @@
 package org.eclipse.smarthome.binding.bluetooth;
 
 import org.eclipse.jdt.annotation.NonNull;
-import org.eclipse.smarthome.binding.bluetooth.BluetoothDevice.ConnectionState;
 import org.eclipse.smarthome.binding.bluetooth.notification.BluetoothConnectionStatusNotification;
 import org.eclipse.smarthome.binding.bluetooth.notification.BluetoothScanNotification;
 import org.eclipse.smarthome.core.library.types.DecimalType;
@@ -81,22 +80,35 @@ public class BeaconBluetoothHandler extends BaseThingHandler implements Bluetoot
      * Updates the RSSI channel and the Thing status according to the new received rssi value
      */
     protected void updateRSSI() {
-        if (device.getConnectionState() == ConnectionState.CONNECTED) {
-            Integer rssi = device.getRssi();
-            if (rssi != null && rssi != 0) {
-                updateState(BluetoothBindingConstants.CHANNEL_TYPE_RSSI, new DecimalType(rssi));
-            } else {
-                updateState(BluetoothBindingConstants.CHANNEL_TYPE_RSSI, UnDefType.NULL);
-            }
+        Integer rssi = device.getRssi();
+        if (rssi != null && rssi != 0) {
+            updateState(BluetoothBindingConstants.CHANNEL_TYPE_RSSI, new DecimalType(rssi));
+            updateStatusBasedOnRssi(true);
+        } else {
+            updateState(BluetoothBindingConstants.CHANNEL_TYPE_RSSI, UnDefType.NULL);
+            updateStatusBasedOnRssi(false);
+        }
+    }
+
+    /**
+     * This method sets the Thing status based on whether or not we can receive a signal from it.
+     * This is the best logic for beacons, but connected devices might want to deactivate this by overriding the method.
+     *
+     * @param receivedSignal true, if the device is in reach
+     */
+    protected void updateStatusBasedOnRssi(boolean receivedSignal) {
+        if (receivedSignal) {
+            updateStatus(ThingStatus.ONLINE);
+        } else {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR);
         }
     }
 
     @Override
     public void onScanRecordReceived(BluetoothScanNotification scanNotification) {
         int rssi = scanNotification.getRssi();
-        if (device.setRssi(rssi)) {
-            updateRSSI();
-        }
+        device.setRssi(rssi);
+        updateRSSI();
     }
 
     @Override
