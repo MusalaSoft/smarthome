@@ -91,11 +91,6 @@ public class BlueZBluetoothDevice extends BluetoothDevice {
             notification.setRssi(n);
             notifyListeners(BluetoothEventType.SCAN_RECORD, notification);
         });
-        device.enableManufacturerDataNotifications(data -> {
-            for (Short key : data.keySet()) {
-                logger.info("{} -> {}", key, data.get(key));
-            }
-        });
         device.enableConnectedNotifications(connected -> {
             connectionState = connected ? ConnectionState.CONNECTED : ConnectionState.DISCONNECTED;
             logger.debug("Connection state of '{}' changed to {}", address, connectionState);
@@ -158,7 +153,7 @@ public class BlueZBluetoothDevice extends BluetoothDevice {
                     // this device does not seem to be connectable at all - let's log a warning and ignore it.
                     logger.warn("Bluetooth device '{}' does not allow a connection.", device.getAddress());
                 } else {
-                    logger.warn("Exception occurred when trying to connect device '{}'", device.getAddress(), e);
+                    logger.debug("Exception occurred when trying to connect device '{}'", device.getAddress(), e);
                 }
             }
         }
@@ -168,10 +163,11 @@ public class BlueZBluetoothDevice extends BluetoothDevice {
     @Override
     public boolean disconnect() {
         if (device != null && device.getConnected()) {
+            logger.debug("Disconnecting '{}'", address);
             try {
                 return device.disconnect();
             } catch (BluetoothException e) {
-                logger.warn("Exception occurred when trying to disconnect device '{}'", device.getAddress(), e);
+                logger.debug("Exception occurred when trying to disconnect device '{}'", device.getAddress(), e);
             }
         }
         return false;
@@ -187,7 +183,8 @@ public class BlueZBluetoothDevice extends BluetoothDevice {
                 notifyListeners(BluetoothEventType.CHARACTERISTIC_READ_COMPLETE, characteristic,
                         BluetoothCompletionStatus.SUCCESS);
             } catch (BluetoothException e) {
-                logger.warn("Exception occurred when trying to read characteristic '{}'", characteristic.getUuid(), e);
+                logger.debug("Exception occurred when trying to read characteristic '{}': {}", characteristic.getUuid(),
+                        e.getMessage());
                 notifyListeners(BluetoothEventType.CHARACTERISTIC_READ_COMPLETE, characteristic,
                         BluetoothCompletionStatus.ERROR);
             }
@@ -205,7 +202,8 @@ public class BlueZBluetoothDevice extends BluetoothDevice {
                         : BluetoothCompletionStatus.ERROR;
                 notifyListeners(BluetoothEventType.CHARACTERISTIC_WRITE_COMPLETE, characteristic, successStatus);
             } catch (BluetoothException e) {
-                logger.warn("Exception occurred when trying to read characteristic '{}'", characteristic.getUuid(), e);
+                logger.debug("Exception occurred when trying to read characteristic '{}': {}", characteristic.getUuid(),
+                        e.getMessage());
                 notifyListeners(BluetoothEventType.CHARACTERISTIC_WRITE_COMPLETE, characteristic,
                         BluetoothCompletionStatus.ERROR);
             }

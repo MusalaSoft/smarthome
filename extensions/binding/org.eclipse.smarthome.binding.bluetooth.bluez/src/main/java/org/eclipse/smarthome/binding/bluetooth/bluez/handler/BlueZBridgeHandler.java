@@ -188,8 +188,10 @@ public class BlueZBridgeHandler extends BaseBridgeHandler implements BluetoothAd
     }
 
     private void checkForNewDevices() {
+        logger.debug("Refreshing bluetooth device list...");
         Set<String> newAddresses = new HashSet<>();
-        List<tinyb.BluetoothDevice> tinybDevices = BluetoothManager.getBluetoothManager().getDevices();
+        List<tinyb.BluetoothDevice> tinybDevices = adapter.getDevices();
+        logger.debug("Found {} bluetooth devices.", tinybDevices.size());
         for (tinyb.BluetoothDevice tinybDevice : tinybDevices) {
             synchronized (devices) {
                 newAddresses.add(tinybDevice.getAddress());
@@ -226,7 +228,7 @@ public class BlueZBridgeHandler extends BaseBridgeHandler implements BluetoothAd
                 listener.deviceDiscovered(device);
             }
         } else {
-            logger.debug("Not notifying listeners for device '{}', because it is not reachable.", device.getAddress());
+            logger.trace("Not notifying listeners for device '{}', because it is not reachable.", device.getAddress());
         }
     }
 
