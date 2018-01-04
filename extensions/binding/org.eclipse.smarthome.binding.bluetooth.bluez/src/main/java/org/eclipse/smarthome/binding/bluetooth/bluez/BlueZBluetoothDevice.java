@@ -12,6 +12,7 @@
  */
 package org.eclipse.smarthome.binding.bluetooth.bluez;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
@@ -52,35 +53,42 @@ public class BlueZBluetoothDevice extends BluetoothDevice {
         super(adapter, address);
         this.name = name;
         logger.debug("Creating BlueZ device with address '{}'", address);
-        tinyb.BluetoothDevice tinybDevice = findTinybDevice(address.toString());
-        if (tinybDevice != null) {
-            setTinybDevice(tinybDevice);
-        }
+        executor.submit(() -> {
+            tinyb.BluetoothDevice tinybDevice = findTinybDevice(address.toString());
+            if (tinybDevice != null) {
+                setTinybDevice(tinybDevice);
+            }
+        });
     }
 
     public BlueZBluetoothDevice(BlueZBridgeHandler adapter, tinyb.BluetoothDevice tinybDevice) {
         super(adapter, new BluetoothAddress(tinybDevice.getAddress()));
         this.name = tinybDevice.getName();
-        setTinybDevice(tinybDevice);
+        executor.submit(() -> setTinybDevice(tinybDevice));
     }
 
     private tinyb.@Nullable BluetoothDevice findTinybDevice(String address) {
-        return ((BlueZBridgeHandler) getAdapter()).getTinyBAdapter().getDevices().stream()
-                .filter(d -> d.getAddress().equals(address)).findFirst().orElse(null);
+        List<tinyb.BluetoothDevice> deviceList = ((BlueZBridgeHandler) getAdapter()).getTinyBAdapter().getDevices();
+        logger.trace("Searching for '{}' in {} devices.", address, deviceList.size());
+        return deviceList.stream().filter(d -> d.getAddress().equals(address)).findFirst().orElse(null);
     }
 
     public synchronized void setTinybDevice(tinyb.BluetoothDevice tinybDevice) {
-        boolean init = (device == null);
-        this.device = tinybDevice;
-        this.rssi = (int) tinybDevice.getRSSI();
-        this.txPower = (int) tinybDevice.getTxPower();
-        if (tinybDevice.getConnected()) {
+        if (device == null) {
+            this.device = tinybDevice;
+            enableNotifications();
+        } else if (!device.equals(tinybDevice)) {
+            // we need to replace the instance - this should never happen for any connected device.
+            disableNotifications();
+            this.device = tinybDevice;
+            enableNotifications();
+        }
+        this.rssi = (int) this.device.getRSSI();
+        this.txPower = (int) this.device.getTxPower();
+        if (this.device.getConnected()) {
             this.connectionState = ConnectionState.CONNECTED;
         }
         refreshServices();
-        if (init) {
-            enableNotifications();
-        }
     }
 
     private void enableNotifications() {
