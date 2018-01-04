@@ -120,4 +120,8 @@ public class BeaconBluetoothHandler extends BaseThingHandler implements Bluetoot
     public void onCharacteristicUpdate(@NonNull BluetoothCharacteristic characteristic) {
     }
 
+    @Override
+    public void onDescriptorUpdate(@NonNull BluetoothDescriptor bluetoothDescriptor) {
+    }
+
 }

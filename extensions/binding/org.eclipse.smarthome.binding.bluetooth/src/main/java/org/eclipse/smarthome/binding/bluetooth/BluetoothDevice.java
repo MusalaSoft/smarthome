@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
  * The {@link BluetoothDevice} class provides a base implementation of a Bluetooth Low Energy device
  *
  * @author Chris Jackson - Initial contribution
- * @author Kai Kreuzer - Refactored class to use Integer instead of int, fixed bugs
+ * @author Kai Kreuzer - Refactored class to use Integer instead of int, fixed bugs, diverse improvements
  */
 public class BluetoothDevice {
 
@@ -71,6 +71,7 @@ public class BluetoothDevice {
         CHARACTERISTIC_READ_COMPLETE,
         CHARACTERISTIC_WRITE_COMPLETE,
         CHARACTERISTIC_UPDATED,
+        DESCRIPTOR_UPDATED,
         SERVICES_DISCOVERED
     }
 
@@ -352,6 +353,58 @@ public class BluetoothDevice {
     }
 
     /**
+     * Enables notifications for a characteristic. Only a single read or write operation can be requested at once.
+     * Attempting to perform an operation when one is already in progress will result in subsequent calls returning
+     * false.
+     * <p>
+     * Notifications result in CHARACTERISTIC_UPDATED events to the listeners.
+     *
+     * @param characteristic the {@link BluetoothCharacteristic} to receive notifications for.
+     * @return true if the characteristic notification is started successfully
+     */
+    public boolean enableNotifications(BluetoothCharacteristic characteristic) {
+        return false;
+    }
+
+    /**
+     * Disables notifications for a characteristic. Only a single read or write operation can be requested at once.
+     * Attempting to perform an operation when one is already in progress will result in subsequent calls returning
+     * false.
+     *
+     * @param characteristic the {@link BluetoothCharacteristic} to disable notifications for.
+     * @return true if the characteristic notification is stopped successfully
+     */
+    public boolean disableNotifications(BluetoothCharacteristic characteristic) {
+        return false;
+    }
+
+    /**
+     * Enables notifications for a descriptor. Only a single read or write operation can be requested at once.
+     * Attempting to perform an operation when one is already in progress will result in subsequent calls returning
+     * false.
+     * <p>
+     * Notifications result in DESCRIPTOR_UPDATED events to the listeners.
+     *
+     * @param descriptor the {@link BluetoothDescriptor} to receive notifications for.
+     * @return true if the descriptor notification is started successfully
+     */
+    public boolean enableNotifications(BluetoothDescriptor descriptor) {
+        return false;
+    }
+
+    /**
+     * Disables notifications for a descriptor. Only a single read or write operation can be requested at once.
+     * Attempting to perform an operation when one is already in progress will result in subsequent calls returning
+     * false.
+     *
+     * @param descriptor the {@link BluetoothDescriptor} to disable notifications for.
+     * @return true if the descriptor notification is stopped successfully
+     */
+    public boolean disableNotifications(BluetoothDescriptor descriptor) {
+        return false;
+    }
+
+    /**
      * Adds a service to the device.
      *
      * @param service the new {@link BluetoothService} to add
@@ -466,6 +519,9 @@ public class BluetoothDevice {
                         break;
                     case CHARACTERISTIC_UPDATED:
                         listener.onCharacteristicUpdate((BluetoothCharacteristic) args[0]);
+                        break;
+                    case DESCRIPTOR_UPDATED:
+                        listener.onDescriptorUpdate((BluetoothDescriptor) args[0]);
                         break;
                 }
             } catch (Throwable throwable) {

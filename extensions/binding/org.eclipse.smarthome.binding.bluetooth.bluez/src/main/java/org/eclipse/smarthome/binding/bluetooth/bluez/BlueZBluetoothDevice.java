@@ -213,11 +213,90 @@ public class BlueZBluetoothDevice extends BluetoothDevice {
         return true;
     }
 
+    @Override
+    public boolean enableNotifications(BluetoothCharacteristic characteristic) {
+        BluetoothGattCharacteristic c = getTinybCharacteristicByUUID(characteristic.getUuid().toString());
+        if (c != null) {
+            try {
+                c.enableValueNotifications(value -> {
+                    logger.debug("Received new value '{}' for characteristic '{}' of device '{}'", value,
+                            characteristic.getUuid(), address);
+                    characteristic.setValue(value);
+                    notifyListeners(BluetoothEventType.CHARACTERISTIC_UPDATED, characteristic);
+                });
+            } catch (BluetoothException e) {
+                if (e.getMessage().contains("Already notifying")) {
+                    return false;
+                } else {
+                    logger.warn("Exception occurred while activating notifications on '{}'", address, e);
+                }
+            }
+            return true;
+        } else {
+            logger.warn("Characteristic '{}' is missing on device '{}'.", characteristic.getUuid(), address);
+            return false;
+        }
+    }
+
+    @Override
+    public boolean disableNotifications(BluetoothCharacteristic characteristic) {
+        BluetoothGattCharacteristic c = getTinybCharacteristicByUUID(characteristic.getUuid().toString());
+        if (c != null) {
+            c.disableValueNotifications();
+            return true;
+        } else {
+            logger.warn("Characteristic '{}' is missing on device '{}'.", characteristic.getUuid(), address);
+            return false;
+        }
+    }
+
+    @Override
+    public boolean enableNotifications(BluetoothDescriptor descriptor) {
+        BluetoothGattDescriptor d = getTinybDescriptorByUUID(descriptor.getUuid().toString());
+        if (d != null) {
+            d.enableValueNotifications(value -> {
+                logger.debug("Received new value '{}' for descriptor '{}' of device '{}'", value, descriptor.getUuid(),
+                        address);
+                descriptor.setValue(value);
+                notifyListeners(BluetoothEventType.DESCRIPTOR_UPDATED, descriptor);
+            });
+            return true;
+        } else {
+            logger.warn("Descriptor '{}' is missing on device '{}'.", descriptor.getUuid(), address);
+            return false;
+        }
+    }
+
+    @Override
+    public boolean disableNotifications(BluetoothDescriptor descriptor) {
+        BluetoothGattDescriptor d = getTinybDescriptorByUUID(descriptor.getUuid().toString());
+        if (d != null) {
+            d.disableValueNotifications();
+            return true;
+        } else {
+            logger.warn("Descriptor '{}' is missing on device '{}'.", descriptor.getUuid(), address);
+            return false;
+        }
+    }
+
     private BluetoothGattCharacteristic getTinybCharacteristicByUUID(String uuid) {
         for (BluetoothGattService service : device.getServices()) {
             for (BluetoothGattCharacteristic c : service.getCharacteristics()) {
                 if (c.getUUID().equals(uuid)) {
                     return c;
+                }
+            }
+        }
+        return null;
+    }
+
+    private BluetoothGattDescriptor getTinybDescriptorByUUID(String uuid) {
+        for (BluetoothGattService service : device.getServices()) {
+            for (BluetoothGattCharacteristic c : service.getCharacteristics()) {
+                for (BluetoothGattDescriptor d : c.getDescriptors()) {
+                    if (d.getUUID().equals(uuid)) {
+                        return d;
+                    }
                 }
             }
         }

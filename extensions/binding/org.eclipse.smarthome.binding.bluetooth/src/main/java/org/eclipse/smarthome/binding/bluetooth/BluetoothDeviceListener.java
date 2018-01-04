@@ -21,6 +21,7 @@ import org.eclipse.smarthome.binding.bluetooth.notification.BluetoothScanNotific
  * BLE device
  *
  * @author Chris Jackson - Initial contribution
+ * @author Kai Kreuzer - Added descriptor updates
  */
 @NonNullByDefault
 public interface BluetoothDeviceListener {
@@ -68,4 +69,12 @@ public interface BluetoothDeviceListener {
      * @param characteristic the updated {@link BluetoothCharacteristic}
      */
     void onCharacteristicUpdate(BluetoothCharacteristic characteristic);
+
+    /**
+     * Called when a descriptor value is received. Implementations should call this whenever a value
+     * is received from the BLE device even if there is no change to the value.
+     *
+     * @param characteristic the updated {@link BluetoothCharacteristic}
+     */
+    void onDescriptorUpdate(BluetoothDescriptor bluetoothDescriptor);
 }
