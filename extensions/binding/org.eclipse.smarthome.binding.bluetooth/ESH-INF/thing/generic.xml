@@ -6,6 +6,7 @@
 	<thing-type id="beacon">
 		<supported-bridge-type-refs>
 			<bridge-type-ref id="bluegiga" />
+            <bridge-type-ref id="bluez" />
 		</supported-bridge-type-refs>
 
 		<label>Bluetooth Device</label>
@@ -25,6 +26,7 @@
     <thing-type id="connected">
         <supported-bridge-type-refs>
             <bridge-type-ref id="bluegiga" />
+            <bridge-type-ref id="bluez" />
         </supported-bridge-type-refs>
 
         <label>Connected Bluetooth Device</label>
