@@ -156,13 +156,17 @@ public class BlueZBridgeHandler extends BaseBridgeHandler implements BluetoothAd
 
     @Override
     public BluetoothDevice getDevice(BluetoothAddress address) {
-        synchronized (devices) {
-            if (devices.containsKey(address.toString())) {
-                return devices.get(address.toString());
-            } else {
-                BluetoothDevice device = new BlueZBluetoothDevice(this, address, "");
-                devices.put(address.toString(), device);
-                return device;
+        if (devices.containsKey(address.toString())) {
+            return devices.get(address.toString());
+        } else {
+            synchronized (devices) {
+                if (devices.containsKey(address.toString())) {
+                    return devices.get(address.toString());
+                } else {
+                    BluetoothDevice device = new BlueZBluetoothDevice(this, address, "");
+                    devices.put(address.toString(), device);
+                    return device;
+                }
             }
         }
     }
