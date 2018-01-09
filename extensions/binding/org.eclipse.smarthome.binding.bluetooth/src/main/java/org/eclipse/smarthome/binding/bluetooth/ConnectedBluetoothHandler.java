@@ -92,7 +92,8 @@ public class ConnectedBluetoothHandler extends BeaconBluetoothHandler {
         // Handle REFRESH
         if (command == RefreshType.REFRESH) {
             for (BluetoothCharacteristic characteristic : deviceCharacteristics) {
-                if (channelUID.getId().equals(characteristic.getGattCharacteristic().name())) {
+                if (characteristic.getGattCharacteristic() != null
+                        && channelUID.getId().equals(characteristic.getGattCharacteristic().name())) {
                     device.readCharacteristic(characteristic);
                     break;
                 }
