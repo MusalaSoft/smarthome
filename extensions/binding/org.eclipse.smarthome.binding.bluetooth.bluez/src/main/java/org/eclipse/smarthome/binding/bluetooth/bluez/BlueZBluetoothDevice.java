@@ -161,7 +161,8 @@ public class BlueZBluetoothDevice extends BluetoothDevice {
                     // this device does not seem to be connectable at all - let's log a warning and ignore it.
                     logger.warn("Bluetooth device '{}' does not allow a connection.", device.getAddress());
                 } else {
-                    logger.debug("Exception occurred when trying to connect device '{}'", device.getAddress(), e);
+                    logger.debug("Exception occurred when trying to connect device '{}': {}", device.getAddress(),
+                            e.getMessage());
                 }
             }
         }
@@ -175,7 +176,8 @@ public class BlueZBluetoothDevice extends BluetoothDevice {
             try {
                 return device.disconnect();
             } catch (BluetoothException e) {
-                logger.debug("Exception occurred when trying to disconnect device '{}'", device.getAddress(), e);
+                logger.debug("Exception occurred when trying to disconnect device '{}': {}", device.getAddress(),
+                        e.getMessage());
             }
         }
         return false;
