@@ -12,9 +12,10 @@
  */
 package org.eclipse.smarthome.binding.bluetooth.bluez;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.binding.bluetooth.BluetoothAddress;
@@ -47,13 +48,13 @@ public class BlueZBluetoothDevice extends BluetoothDevice {
 
     private final Logger logger = LoggerFactory.getLogger(BlueZBluetoothDevice.class);
 
-    private final ExecutorService executor = ThreadPoolManager.getPool("bluetooth");
+    private final ScheduledExecutorService scheduler = ThreadPoolManager.getScheduledPool("bluetooth");
 
     public BlueZBluetoothDevice(BlueZBridgeHandler adapter, BluetoothAddress address, String name) {
         super(adapter, address);
         this.name = name;
         logger.debug("Creating BlueZ device with address '{}'", address);
-        executor.submit(() -> {
+        scheduler.submit(() -> {
             tinyb.BluetoothDevice tinybDevice = findTinybDevice(address.toString());
             if (tinybDevice != null) {
                 setTinybDevice(tinybDevice);
@@ -64,11 +65,11 @@ public class BlueZBluetoothDevice extends BluetoothDevice {
     public BlueZBluetoothDevice(BlueZBridgeHandler adapter, tinyb.BluetoothDevice tinybDevice) {
         super(adapter, new BluetoothAddress(tinybDevice.getAddress()));
         this.name = tinybDevice.getName();
-        executor.submit(() -> setTinybDevice(tinybDevice));
+        scheduler.submit(() -> setTinybDevice(tinybDevice));
     }
 
     private tinyb.@Nullable BluetoothDevice findTinybDevice(String address) {
-        List<tinyb.BluetoothDevice> deviceList = ((BlueZBridgeHandler) getAdapter()).getTinyBAdapter().getDevices();
+        Collection<tinyb.BluetoothDevice> deviceList = ((BlueZBridgeHandler) getAdapter()).getTinyBDevices();
         logger.trace("Searching for '{}' in {} devices.", address, deviceList.size());
         return deviceList.stream().filter(d -> d.getAddress().equals(address)).findFirst().orElse(null);
     }
@@ -186,7 +187,7 @@ public class BlueZBluetoothDevice extends BluetoothDevice {
     @Override
     public boolean readCharacteristic(BluetoothCharacteristic characteristic) {
         BluetoothGattCharacteristic c = getTinybCharacteristicByUUID(characteristic.getUuid().toString());
-        executor.submit(() -> {
+        scheduler.submit(() -> {
             try {
                 byte[] value = c.readValue();
                 characteristic.setValue(value);
@@ -205,7 +206,7 @@ public class BlueZBluetoothDevice extends BluetoothDevice {
     @Override
     public boolean writeCharacteristic(BluetoothCharacteristic characteristic) {
         BluetoothGattCharacteristic c = getTinybCharacteristicByUUID(characteristic.getUuid().toString());
-        executor.submit(() -> {
+        scheduler.submit(() -> {
             try {
                 BluetoothCompletionStatus successStatus = c.writeValue(characteristic.getByteValue())
                         ? BluetoothCompletionStatus.SUCCESS
@@ -235,6 +236,9 @@ public class BlueZBluetoothDevice extends BluetoothDevice {
             } catch (BluetoothException e) {
                 if (e.getMessage().contains("Already notifying")) {
                     return false;
+                } else if (e.getMessage().contains("In Progress")) {
+                    // let's retry in 10 seconds
+                    scheduler.schedule(() -> enableNotifications(characteristic), 10, TimeUnit.SECONDS);
                 } else {
                     logger.warn("Exception occurred while activating notifications on '{}'", address, e);
                 }
