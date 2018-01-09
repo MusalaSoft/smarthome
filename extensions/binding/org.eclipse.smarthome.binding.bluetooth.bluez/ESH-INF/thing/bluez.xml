@@ -14,6 +14,12 @@
 				<label>Address</label>
 				<description>the bluetooth address of the adapter</description>
 			</parameter>
+			<parameter name="discovery" type="boolean">
+                <label>Device Discovery</label>
+                <description>whether this adapter actively participates in Bluetooth device discovery</description>
+                <advanced>true</advanced>
+                <default>true</default>
+			</parameter>
 		</config-description>
 		
 	</bridge-type>

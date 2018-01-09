@@ -57,6 +57,9 @@ public class BlueZBridgeHandler extends BaseBridgeHandler implements BluetoothAd
     // Our BT address
     private BluetoothAddress address;
 
+    // internal flag for the discovery configuration
+    private boolean discoveryActive = true;
+
     // Map of Bluetooth devices known to this bridge.
     // This is all devices we have heard on the network - not just things bound to the bridge
     private final Map<String, BluetoothDevice> devices = new ConcurrentHashMap<>();
@@ -79,12 +82,21 @@ public class BlueZBridgeHandler extends BaseBridgeHandler implements BluetoothAd
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "address not set");
             return;
         }
+
+        Object discovery = getConfig().get(BlueZAdapterConstants.PROPERTY_DISCOVERY);
+        if (discovery != null && discovery.toString().equalsIgnoreCase(Boolean.FALSE.toString())) {
+            discoveryActive = false;
+            logger.debug("Deactivated discovery participation.");
+        }
+
         logger.debug("Creating BlueZ adapter with address '{}'", address);
         for (tinyb.BluetoothAdapter a : BluetoothManager.getBluetoothManager().getAdapters()) {
             if (a.getAddress().equals(address.toString())) {
                 adapter = a;
                 updateStatus(ThingStatus.ONLINE);
-                adapter.startDiscovery();
+                if (discoveryActive) {
+                    adapter.startDiscovery();
+                }
                 discoveryJob = scheduler.scheduleWithFixedDelay(() -> {
                     checkForNewDevices();
                 }, 0, 10, TimeUnit.SECONDS);
@@ -222,8 +234,8 @@ public class BlueZBridgeHandler extends BaseBridgeHandler implements BluetoothAd
         return device;
     }
 
-    private void notifyEventListeners(BluetoothDevice device) {
-        if (deviceReachable(device)) {
+    private void notifyDiscoveryListeners(BluetoothDevice device) {
+        if (discoveryActive && deviceReachable(device)) {
             for (BluetoothDiscoveryListener listener : discoveryListeners) {
                 listener.deviceDiscovered(device);
             }
