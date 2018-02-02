@@ -417,6 +417,8 @@ public class BlueGigaBluetoothDevice extends BluetoothDevice implements BlueGiga
             if (characteristic == null) {
                 logger.debug("BlueGiga didn't find characteristic for event {}", event);
             } else {
+                characteristic.setValue(valueEvent.getValue());
+
                 // If this is the characteristic we were reading, then send a read completion
                 if (procedureProgress == BlueGigaProcedure.CHARACTERISTIC_READ && procedureCharacteristic != null
                         && procedureCharacteristic.getHandle() == valueEvent.getAttHandle()) {
